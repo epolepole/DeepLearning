@@ -1,9 +1,10 @@
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from tensorflow import confusion_matrix
+from keras.wrappers.scikit_learn import KerasClassifier
 
-from Artificial_Neural_Networks.Solution.modules.DataReader import DataReader
-from Artificial_Neural_Networks.Solution.modules.ann_helper import AnnHelper
+from modules.DataReader import DataReader
+from modules.ann_helper import AnnHelper
 
 
 def encode_labels(ix):
@@ -25,17 +26,18 @@ if __name__ == '__main__':
     x_train, x_test = AnnHelper.scale_data(x_train, x_test)
 
     # Normal ANN
-    classifier = AnnHelper.create_classifier('adam', 6, 1)
-    classifier.fit(x_train, y_train, batch_size=10, epochs=100)
-    y_pred = AnnHelper.threshold(classifier.predict(x_test))
-    cm = confusion_matrix(y_test, y_pred)
-    y_result = AnnHelper.threshold(classifier.predict(x_data))
+    # classifier = AnnHelper.create_classifier('adam', 6, 1)
+    # classifier.fit(x_train, y_train, batch_size=10, epochs=100)
+    # y_pred = AnnHelper.threshold(classifier.predict(x_test))
+    # cm = confusion_matrix(y_test, y_pred)
+    # y_result = AnnHelper.threshold(classifier.predict(x_data))
 
     # With Cross Val Score. Ensure low variance
-    # classifier = KerasClassifier(build_fn=AnnHelper.create_classifier, batch_size=10, epochs=100, optimizer='adam', output_dim=6, inner_layers=1)
-    # accuracies = cross_val_score(estimator=classifier, X=x_train, y=y_train, cv=10, n_jobs=4)
-    # mean = accuracies.mean()
-    # variance = accuracies.std()
+    classifier = KerasClassifier(build_fn=AnnHelper.create_classifier, batch_size=10, epochs=100, optimizer='adam', output_dim=6, inner_layers=1)
+    accuracies = cross_val_score(estimator=classifier, X=x_train, y=y_train, cv=10, n_jobs=-1)
+    mean = accuracies.mean()
+    variance = accuracies.std()
+    print('mean: {}, variance: {}'.format(str(mean), str(variance)))
 
     # With GridSearchCV -> Parameters optimization
     # classifier = KerasClassifier(build_fn=AnnHelper.create_classifier)
